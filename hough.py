@@ -20,7 +20,8 @@ def hough_transform(folder_path):
         img= cv2.imread(image_path)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        #increase brightness and contrast to make box more visible
+        #increase brightness and contrast to make box more visible. 
+        #im using the box seen in the xray image not the humerus itself
         contrast_factor = 4  # Increase the contrast by 50%
         brightness_factor = 200  # Do not change the brightness
         adjusted_image = cv2.convertScaleAbs(gray, alpha=contrast_factor, beta=brightness_factor)
