@@ -9,9 +9,9 @@ from PIL import Image
 import PIL
 
 
-def hough_transform(folder_path):
+def hough_transform(folder_path,n):
     image_files = os.listdir(folder_path)
-    image_files = image_files[0:100] #getting only first 100 images in the folder 
+    image_files = image_files[0:n] #getting only first 100 images in the folder 
 
     image_output = []
     skipped_images = []
