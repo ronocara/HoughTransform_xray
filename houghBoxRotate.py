@@ -11,6 +11,7 @@ from skimage.filters import threshold_otsu, sobel
 def houghT_rotate(folder_path, output_folder, skipped_image_path):
     image_files = os.listdir(folder_path)
 
+    non_centered = []
     image_output = []
     skipped_images = []
 
@@ -64,21 +65,28 @@ def houghT_rotate(folder_path, output_folder, skipped_image_path):
         img_original = cv2.imread(image_path)
         height, width = img_original.shape[:2]
         center = (width // 2, height // 2)
-
-        rotation_matrix = cv2.getRotationMatrix2D(center, angle_degrees, 1) # 1 is dimage zoom
-        rotated_image = cv2.warpAffine(im_gray, rotation_matrix, (height,width))
+        #if the image is already upright, will not rotate
+        if angle_degrees == -90 or angle_degrees == 90 : 
+            if angle_degrees == 90:
+                rotated_image = cv2.rotate(im_gray, cv2.ROTATE_90_COUNTERCLOCKWISE)
+            elif angle_degrees == -90:
+                rotated_image = cv2.rotate(im_gray, cv2.ROTATE_90_CLOCKWISE)
+        else: 
+            rotation_matrix = cv2.getRotationMatrix2D(center, angle_degrees, 1) # 1 is dimage zoom
+            rotated_image = cv2.warpAffine(im_gray, rotation_matrix, (height,width))
 
         if angle_degrees <= 0:
             rotated_image = cv2.rotate(rotated_image, cv2.ROTATE_90_COUNTERCLOCKWISE)
         elif angle_degrees > 0:
             rotated_image = cv2.rotate(rotated_image, cv2.ROTATE_90_CLOCKWISE)
         
+        
         centered_image = center_object(rotated_image)
-
         image_output.append(centered_image)
+        non_centered.append(rotated_image)
         cv2.imwrite(output_folder+image, centered_image)
 
-    return image_output , skipped_images 
+    return image_output , skipped_images , non_centered
 
 def get_rect(im_gray):
     #get image threshold
