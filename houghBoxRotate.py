@@ -19,10 +19,11 @@ def houghT_rotate(folder_path, output_folder, skipped_image_path):
         image_path = folder_path + image
         im_gray = np.array(Image.open(image_path).convert('L'))
         
-        drawn_image, _ = get_rect(im_gray)
+        #get rectangle mask
+        mask, image_masked, no_mask = get_rect(im_gray)
 
         #We use HoughLines now to rotate the rectangle
-        edges = cv2.Canny(drawn_image, 50, 150, apertureSize=3) #get contours of the rectangle
+        edges = cv2.Canny(mask, 50, 150, apertureSize=3) #get contours of the rectangle
         lines_list =[]
 
         lines = cv2.HoughLinesP(
@@ -35,7 +36,7 @@ def houghT_rotate(folder_path, output_folder, skipped_image_path):
             )
 
         if lines is None:
-            print("Skipping image, no lines found.")
+            print("Skipped images:", len(skipped_images))
             skipped_images.append(image_path)
             skipped_image = cv2.imread(image_path)
             cv2.imwrite(skipped_image_path+image, skipped_image)
@@ -45,9 +46,9 @@ def houghT_rotate(folder_path, output_folder, skipped_image_path):
             # Extracted points nested in the list
             x1,y1,x2,y2=points[0]
             length = np.sqrt((x2 - x1)^2 + (y2 - y1)^2)
-            # Draw the lines joing the points
-            # On the original image
-            cv2.line(drawn_image,(x1,y1),(x2,y2),(0,255,0),2)
+            # # Draw the lines joing the points
+            # # On the original image
+            # cv2.line(mask,(x1,y1),(x2,y2),(0,255,0),2)
             # Maintain a simples lookup list for points
             # lines_list[0].append([(x1,y1),(x2,y2)])
             lines_list.append(length) #get the length of the line 
@@ -72,16 +73,26 @@ def houghT_rotate(folder_path, output_folder, skipped_image_path):
             elif angle_degrees == -90:
                 rotated_image = cv2.rotate(im_gray, cv2.ROTATE_90_CLOCKWISE)
         else: 
-            rotation_matrix = cv2.getRotationMatrix2D(center, angle_degrees, 1) # 1 is dimage zoom
-            rotated_image = cv2.warpAffine(im_gray, rotation_matrix, (height,width))
+            rotation_matrix = cv2.getRotationMatrix2D(center, angle_degrees, 1) # 1 is the image zoom
+            
+            #making sure the height is always longer. so image is always vertical 
+            if width > height:
+                rotated_image = cv2.warpAffine(image_masked, rotation_matrix, (width, height))
+            else:
+                rotated_image = cv2.warpAffine(image_masked, rotation_matrix, (height, width))
+
 
         if angle_degrees <= 0:
             rotated_image = cv2.rotate(rotated_image, cv2.ROTATE_90_COUNTERCLOCKWISE)
         elif angle_degrees > 0:
             rotated_image = cv2.rotate(rotated_image, cv2.ROTATE_90_CLOCKWISE)
         
-        
-        centered_image = center_object(rotated_image)
+        # if there's no mask/rectangle detected will not auto center image
+        if no_mask == True:
+            centered_image = rotated_image
+        else:
+            centered_image = center_object(rotated_image)
+
         image_output.append(centered_image)
         non_centered.append(rotated_image)
         cv2.imwrite(output_folder+image, centered_image)
@@ -91,15 +102,20 @@ def houghT_rotate(folder_path, output_folder, skipped_image_path):
 def get_rect(im_gray):
     #get image threshold
     threshold = threshold_otsu(im_gray)
-    threshold -= threshold*0.20
+    threshold -= threshold*0.40
     bina_image = im_gray < threshold
     inverted_bina_image = np.logical_not(bina_image)
 
     # invert image
-    inverted_binary_image_pil = Image.fromarray(np.uint8(inverted_bina_image) * 255)
+    inverted_binary_image = Image.fromarray(np.uint8(inverted_bina_image) * 255)
     
+    #removed image background after thresholding (not perfect)
+    background_removed_image = np.zeros_like(im_gray)
+    background_removed_image[inverted_bina_image]  = im_gray[inverted_bina_image]
+    background_removed_image = Image.fromarray(background_removed_image)
+
     #get contours of binary image
-    contours, _ = cv2.findContours(np.uint8(inverted_bina_image), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(np.uint8(background_removed_image), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     #find the best rectangle that will fit to the humerus
     best_rect = None
@@ -116,13 +132,23 @@ def get_rect(im_gray):
 
     #draw the rectangle on the original image. then make the inside white
     #now we have a white rectangle
-    original_image = np.array(inverted_binary_image_pil)
-    drawn_image = original_image.copy()
-    cv2.drawContours(drawn_image, [np.int0(best_rect)], 0, (255, 255, 255), -1)
+    original_image = np.array(background_removed_image)
+    mask = np.zeros_like(original_image)
+    no_mask = False
+    cv2.drawContours(mask, [np.int0(best_rect)], 0, (255, 255, 255), cv2.FILLED) # get the mask rectangle
+    image_masked = cv2.bitwise_and(original_image, original_image, mask=mask) #getting only object insde the rectangle
 
-    return drawn_image, best_rect
+    #sometimes it cannot detect a rectangle. so we use the original image
+    if all(element == 255 for row in mask for element in row):
+        mask = image_masked
+        # to know if there was no mask detected or not
+        #if no mask, will not center image
+        no_mask = True 
+
+    return mask, image_masked, no_mask
 
 def center_object(rotated_image):
+    w, h, x, y=0,0,0,0
     hh, ww = rotated_image.shape
 
     # get the contours of the rotated image
