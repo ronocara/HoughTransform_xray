@@ -70,29 +70,37 @@ def houghT_rotate(folder_path, output_folder, skipped_image_path):
         if angle_degrees == -90 or angle_degrees == 90 : 
             if angle_degrees == 90:
                 rotated_image = cv2.rotate(im_gray, cv2.ROTATE_90_COUNTERCLOCKWISE)
+                rotated_mask =cv2.rotate(mask, cv2.ROTATE_90_COUNTERCLOCKWISE)
             elif angle_degrees == -90:
                 rotated_image = cv2.rotate(im_gray, cv2.ROTATE_90_CLOCKWISE)
+                rotated_mask =cv2.rotate(mask, cv2.ROTATE_90_CLOCKWISE)
         else: 
             rotation_matrix = cv2.getRotationMatrix2D(center, angle_degrees, 1) # 1 is the image zoom
             
             #making sure the height is always longer. so image is always vertical 
             if width > height:
                 rotated_image = cv2.warpAffine(image_masked, rotation_matrix, (width, height))
+                rotated_mask = cv2.warpAffine(mask, rotation_matrix, (width, height))
             else:
                 rotated_image = cv2.warpAffine(image_masked, rotation_matrix, (height, width))
+                rotated_mask = cv2.warpAffine(mask, rotation_matrix, (height, width))
 
 
         if angle_degrees <= 0:
             rotated_image = cv2.rotate(rotated_image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+            rotated_mask = cv2.rotate(rotated_mask, cv2.ROTATE_90_COUNTERCLOCKWISE)
         elif angle_degrees > 0:
             rotated_image = cv2.rotate(rotated_image, cv2.ROTATE_90_CLOCKWISE)
-        
-        # if there's no mask/rectangle detected will not auto center image
-        if no_mask == True:
-            centered_image = rotated_image
-        else:
-            centered_image = center_object(rotated_image)
+            rotated_mask = cv2.rotate(rotated_mask, cv2.ROTATE_90_CLOCKWISE)
 
+        
+        # # if there's no mask/rectangle detected will not auto center image
+        # if no_mask == True:
+        #     centered_image = rotated_image
+        # else:
+        #     centered_image = center_object(rotated_image)
+
+        centered_image = center_object(rotated_image , rotated_mask)
         image_output.append(centered_image)
         non_centered.append(rotated_image)
         cv2.imwrite(output_folder+image, centered_image)
@@ -102,7 +110,7 @@ def houghT_rotate(folder_path, output_folder, skipped_image_path):
 def get_rect(im_gray):
     #get image threshold
     threshold = threshold_otsu(im_gray)
-    threshold -= threshold*0.40
+    threshold -= threshold * 0.35 #lessen threshold   
     bina_image = im_gray < threshold
     inverted_bina_image = np.logical_not(bina_image)
 
@@ -138,21 +146,21 @@ def get_rect(im_gray):
     cv2.drawContours(mask, [np.int0(best_rect)], 0, (255, 255, 255), cv2.FILLED) # get the mask rectangle
     image_masked = cv2.bitwise_and(original_image, original_image, mask=mask) #getting only object insde the rectangle
 
-    #sometimes it cannot detect a rectangle. so we use the original image
-    if all(element == 255 for row in mask for element in row):
-        mask = image_masked
-        # to know if there was no mask detected or not
-        #if no mask, will not center image
-        no_mask = True 
+    # #sometimes it cannot detect a rectangle. so we use the original image
+    # if all(element == 255 for row in mask for element in row):
+    #     mask = image_masked
+    #     # to know if there was no mask detected or not
+    #     #if no mask, will not center image
+    #     no_mask = True 
 
     return mask, image_masked, no_mask
 
-def center_object(rotated_image):
+def center_object(rotated_image, rotated_mask):
     w, h, x, y=0,0,0,0
-    hh, ww = rotated_image.shape
+    hh, ww = rotated_mask.shape
 
     # get the contours of the rotated image
-    contours = cv2.findContours(rotated_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours = cv2.findContours(rotated_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contours = contours[0] if len(contours) == 2 else contours[1]
     for cntr in contours:
         x,y,w,h = cv2.boundingRect(cntr)
