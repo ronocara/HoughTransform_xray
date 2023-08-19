@@ -24,7 +24,7 @@ def houghT_rotate(folder_path, output_folder, outliers_path, th_less, i):
         im_gray = np.array(Image.open(image_path).convert('L'))
 
         #get rectangle mask
-        mask, image_masked, no_mask = get_rect(im_gray, th_less, i) # th_less = percentage to lessen threshold
+        mask, image_masked, no_mask , bg_removed = get_rect(im_gray, th_less, i) # th_less = percentage to lessen threshold
 
         #use HoughLines now to rotate the rectangle
         edges = cv2.Canny(mask, 50, 150, apertureSize=3) #get contours of the rectangle
@@ -66,10 +66,10 @@ def houghT_rotate(folder_path, output_folder, outliers_path, th_less, i):
 
             
             if no_mask is True:
-                centered_image = im_gray
+                centered_image = bg_removed
 
             elif (angle_degrees <=0.6 and angle_degrees >=0.0):
-                image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
+                # image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
                 rotated_image = cv2.rotate(image_masked, cv2.ROTATE_90_CLOCKWISE)
                 rotated_mask = cv2.rotate(mask, cv2.ROTATE_90_CLOCKWISE)
 
@@ -77,11 +77,11 @@ def houghT_rotate(folder_path, output_folder, outliers_path, th_less, i):
                 #vertical images
                 if (angle_degrees >= -90 and angle_degrees <= -80) or (angle_degrees <= 90 and angle_degrees >= 80 ) :
                     if (angle_degrees <= 90 and angle_degrees >= 80 ):
-                        image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
+                        # image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
                         rotated_image = cv2.rotate(np.uint8(image_masked), cv2.ROTATE_90_COUNTERCLOCKWISE)
                         rotated_mask =cv2.rotate(mask, cv2.ROTATE_90_COUNTERCLOCKWISE)
                     elif (angle_degrees >= -90 and angle_degrees <= -80):
-                        image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
+                        # image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
                         rotated_image = cv2.rotate(np.uint8(image_masked), cv2.ROTATE_90_CLOCKWISE)
                         rotated_mask =cv2.rotate(mask, cv2.ROTATE_90_CLOCKWISE)
                                 
@@ -89,11 +89,11 @@ def houghT_rotate(folder_path, output_folder, outliers_path, th_less, i):
                     rotation_matrix = cv2.getRotationMatrix2D(center, angle_degrees, 1) #1 is image zoo,
                     #fiting the image to the mask. to avoid cropped images
                     if height < width:
-                        image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
+                        # image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
                         rotated_image = cv2.warpAffine(image_masked, rotation_matrix, (width, height))
                         rotated_mask = cv2.warpAffine(mask, rotation_matrix, (width, height))
                     else:
-                        image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
+                        # image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
                         rotated_image = cv2.warpAffine(image_masked, rotation_matrix, (height, width))
                         rotated_mask = cv2.warpAffine(mask, rotation_matrix, (height, width))
 
@@ -169,7 +169,7 @@ def get_rect(im_gray, th_less, i):
         #if no mask, will not center image
         no_mask = True 
 
-    return mask, image_masked, no_mask
+    return mask, image_masked, no_mask, background_removed_image
 
 def center_object(rotated_image, rotated_mask):
     w, h, x, y=0,0,0,0
