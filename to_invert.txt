@@ -9,13 +9,11 @@ MURA-v1.1-train-XR_HUMERUS-patient02112-study1_positive-image2.png
 MURA-v1.1-train-XR_HUMERUS-patient02419-study1_positive-image1.png
 MURA-v1.1-train-XR_HUMERUS-patient02700-study1_positive-image1.png
 MURA-v1.1-train-XR_HUMERUS-patient02705-study1_positive-image2.png
-MURA-v1.1-train-XR_HUMERUS-patient02747-study1_positive-image1.png
 MURA-v1.1-train-XR_HUMERUS-patient02747-study1_positive-image2.png
 MURA-v1.1-train-XR_HUMERUS-patient02747-study1_positive-image3.png
 MURA-v1.1-train-XR_HUMERUS-patient02749-study1_positive-image2.png
 MURA-v1.1-train-XR_HUMERUS-patient02751-study1_positive-image2.png
 MURA-v1.1-train-XR_HUMERUS-patient02759-study1_positive-image1.png
-MURA-v1.1-train-XR_HUMERUS-patient02759-study1_positive-image3.png
 MURA-v1.1-train-XR_HUMERUS-patient02781-study1_positive-image2.png
 MURA-v1.1-train-XR_HUMERUS-patient02805-study1_positive-image4.png
 MURA-v1.1-train-XR_HUMERUS-patient02842-study1_positive-image1.png
@@ -34,8 +32,6 @@ MURA-v1.1-train-XR_HUMERUS-patient02974-study1_negative-image2.png
 MURA-v1.1-train-XR_HUMERUS-patient02983-study1_negative-image1.png
 MURA-v1.1-train-XR_HUMERUS-patient02983-study1_negative-image2.png
 MURA-v1.1-train-XR_HUMERUS-patient03010-study1_negative-image1.png
-MURA-v1.1-train-XR_HUMERUS-patient03010-study1_negative-image2.png
-MURA-v1.1-train-XR_HUMERUS-patient03031-study1_negative-image1.png
 MURA-v1.1-train-XR_HUMERUS-patient03031-study1_negative-image3.png
 MURA-v1.1-train-XR_HUMERUS-patient03044-study1_negative-image1.png
 MURA-v1.1-train-XR_HUMERUS-patient03046-study1_negative-image3.png
@@ -47,7 +43,6 @@ MURA-v1.1-train-XR_HUMERUS-patient03057-study1_negative-image4.png
 MURA-v1.1-train-XR_HUMERUS-patient03075-study1_negative-image2.png
 MURA-v1.1-train-XR_HUMERUS-patient03089-study1_negative-image1.png
 MURA-v1.1-train-XR_HUMERUS-patient03089-study1_negative-image2.png
-MURA-v1.1-train-XR_HUMERUS-patient03108-study1_negative-image3.png
 MURA-v1.1-train-XR_HUMERUS-patient03109-study1_negative-image1.png
 MURA-v1.1-train-XR_HUMERUS-patient03109-study1_negative-image2.png
 MURA-v1.1-train-XR_HUMERUS-patient03109-study1_negative-image3.png
@@ -75,8 +70,6 @@ MURA-v1.1-valid-XR_HUMERUS-patient11200-study1_negative-image2.png
 MURA-v1.1-valid-XR_HUMERUS-patient11225-study1_negative-image1.png
 MURA-v1.1-valid-XR_HUMERUS-patient11275-study1_negative-image1.png
 MURA-v1.1-valid-XR_HUMERUS-patient11275-study1_negative-image2.png
-MURA-v1.1-valid-XR_HUMERUS-patient11311-study1_positive-image1.png
-MURA-v1.1-valid-XR_HUMERUS-patient11311-study1_positive-image2.png
 MURA-v1.1-valid-XR_HUMERUS-patient11378-study1_negative-image1.png
 MURA-v1.1-valid-XR_HUMERUS-patient11378-study1_negative-image2.png
 MURA-v1.1-train-XR_HUMERUS-patient02728-study1_positive-image1.png

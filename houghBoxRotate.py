@@ -13,19 +13,11 @@ from tqdm import tqdm
 def houghT_rotate(folder_path, output_folder, outliers_path, th_less, i):
     image_files = os.listdir(folder_path)
 
-    #remove the outliers listed in the anomalies folder
-    outliers = os.listdir(outliers_path)
-    for i, x in enumerate(outliers):
-        if ".png.png" in x:
-            x = x.replace(".png.png",".png")
-            outliers[i] = x
-    
-    for y in outliers:
-        if y in image_files:   
-            image_files.remove(y)
 
+    
     non_centered = []
     image_output = []
+
 
     for image in tqdm(image_files, desc="Processing images", unit="image"): 
         image_path = folder_path + image
@@ -50,7 +42,8 @@ def houghT_rotate(folder_path, output_folder, outliers_path, th_less, i):
         #if no rectangle detected , keep it as is
         if lines is None:
             centered_image = im_gray
-        
+            rotated_image = im_gray 
+            rotated_mask = mask 
 
         else:
             for points in lines:
@@ -112,6 +105,7 @@ def houghT_rotate(folder_path, output_folder, outliers_path, th_less, i):
                 rotated_image = cv2.rotate(rotated_image, cv2.ROTATE_90_CLOCKWISE)
                 rotated_mask = cv2.rotate(rotated_mask, cv2.ROTATE_90_CLOCKWISE)  
 
+
         # if there's no mask/rectangle detected will not auto center image
         # mask is the basis for the centering
         if no_mask == True:
@@ -119,7 +113,7 @@ def houghT_rotate(folder_path, output_folder, outliers_path, th_less, i):
         else:
             centered_image = center_object(rotated_image , rotated_mask)
 
-    
+        
         image_output.append(centered_image)
         non_centered.append(rotated_image) #for double checking
 
@@ -129,6 +123,7 @@ def houghT_rotate(folder_path, output_folder, outliers_path, th_less, i):
 
 def get_rect(im_gray, th_less, i):
     #get image threshold
+
     threshold = threshold_otsu(im_gray)
     threshold -= threshold * th_less #lessen threshold   
     bina_image = im_gray < threshold
@@ -194,6 +189,25 @@ def center_object(rotated_image, rotated_mask):
         
     return result
 
+# def to_invert_image(image):
+    
+#     # Define the number of levels for quantization
+#     num_levels = 4  # Adjust this as needed
+
+#     # Calculate the interval between levels
+#     interval = 255 / (num_levels - 1)
+
+#     # Apply quantization by rounding pixel values to the nearest level
+#     quantized_image = np.round(image / interval) * interval
+
+#     # Convert the pixel values back to uint8 type
+#     quantized_image = quantized_image.astype(np.uint8)
+
+#     # Check if black or white is closer to the mean of the pixel values
+#     if np.abs(quantized_image.mean()) > np.abs(quantized_image.mean() - 255):
+#        image = cv2.bitwise_not(image)
+
+#     return image
 
 #sources:
 # image center: https://stackoverflow.com/questions/59525640/how-to-center-the-content-object-of-a-binary-image-in-python
