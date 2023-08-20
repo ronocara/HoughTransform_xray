@@ -10,22 +10,17 @@ from skimage.filters import threshold_otsu, sobel
 from tqdm import tqdm
 
 
-def houghT_rotate(folder_path, output_folder, outliers_path, th_less, i):
+def houghT_rotate(folder_path, output_folder, outliers_path, th_less):
     image_files = os.listdir(folder_path)
-
-
-    
     non_centered = []
     image_output = []
-
 
     for image in tqdm(image_files, desc="Processing images", unit="image"): 
         image_path = folder_path + image
         im_gray = np.array(Image.open(image_path).convert('L'))
 
         #get rectangle mask
-        mask, image_masked, no_mask , bg_removed = get_rect(im_gray, th_less, i) # th_less = percentage to lessen threshold
-
+        mask, image_masked, no_mask , bg_removed = get_rect(im_gray, th_less) # th_less = percentage to lessen threshold
         #use HoughLines now to rotate the rectangle
         edges = cv2.Canny(mask, 50, 150, apertureSize=3) #get contours of the rectangle
         lines_list =[]
@@ -41,8 +36,8 @@ def houghT_rotate(folder_path, output_folder, outliers_path, th_less, i):
 
         #if no rectangle detected , keep it as is
         if lines is None:
-            centered_image = im_gray
-            rotated_image = im_gray 
+            centered_image = image_masked
+            rotated_image = image_masked 
             rotated_mask = mask 
 
         else:
@@ -66,50 +61,61 @@ def houghT_rotate(folder_path, output_folder, outliers_path, th_less, i):
 
             
             if no_mask is True:
-                centered_image = bg_removed
+                centered_image = im_gray
 
             elif (angle_degrees <=0.6 and angle_degrees >=0.0):
-                # image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
+                # print("condition 1")
+                # rotated_image = np.uint8(im_gray)
+                # image_masked = cv2.bitwise_and(rotated_image, rotated_image, mask=mask)
                 rotated_image = cv2.rotate(image_masked, cv2.ROTATE_90_CLOCKWISE)
                 rotated_mask = cv2.rotate(mask, cv2.ROTATE_90_CLOCKWISE)
 
             else:
-                #vertical images
-                if (angle_degrees >= -90 and angle_degrees <= -80) or (angle_degrees <= 90 and angle_degrees >= 80 ) :
-                    if (angle_degrees <= 90 and angle_degrees >= 80 ):
+                if (angle_degrees >= -90 and angle_degrees <= -70) or (angle_degrees <= 90 and angle_degrees >= 70 ) :
+                    # print("condition 2")
+                    if (angle_degrees <= 90 and angle_degrees >= 70 ):
+                        # print("condition 2.1")
                         # image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
                         rotated_image = cv2.rotate(np.uint8(image_masked), cv2.ROTATE_90_COUNTERCLOCKWISE)
                         rotated_mask =cv2.rotate(mask, cv2.ROTATE_90_COUNTERCLOCKWISE)
-                    elif (angle_degrees >= -90 and angle_degrees <= -80):
+                    elif (angle_degrees >= -90 and angle_degrees <= -70):
+                        # print("condition 2.2")
                         # image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
                         rotated_image = cv2.rotate(np.uint8(image_masked), cv2.ROTATE_90_CLOCKWISE)
                         rotated_mask =cv2.rotate(mask, cv2.ROTATE_90_CLOCKWISE)
-                                
+                    
                 else:
+                    #where mask is horizontal but base image is vertical crops image inside
+                    # print("condition 3")
                     rotation_matrix = cv2.getRotationMatrix2D(center, angle_degrees, 1) #1 is image zoo,
-                    #fiting the image to the mask. to avoid cropped images
+                    #making sure the height is always longer. so image is always vertical 
                     if height < width:
+                        # print("condition 3.1")
                         # image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
                         rotated_image = cv2.warpAffine(image_masked, rotation_matrix, (width, height))
                         rotated_mask = cv2.warpAffine(mask, rotation_matrix, (width, height))
                     else:
+                        # print("condition 3.2")
+                        # im_gray = np.uint8(img_original)
                         # image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
                         rotated_image = cv2.warpAffine(image_masked, rotation_matrix, (height, width))
                         rotated_mask = cv2.warpAffine(mask, rotation_matrix, (height, width))
 
             #rotation of whole image (not just the mask)
             if angle_degrees < -0.6:
+                # print("condition 4")
                 rotated_image = cv2.rotate(rotated_image, cv2.ROTATE_90_COUNTERCLOCKWISE)
                 rotated_mask = cv2.rotate(rotated_mask, cv2.ROTATE_90_COUNTERCLOCKWISE)
             elif angle_degrees > 0.6:
+                # print("condition 5")
                 rotated_image = cv2.rotate(rotated_image, cv2.ROTATE_90_CLOCKWISE)
-                rotated_mask = cv2.rotate(rotated_mask, cv2.ROTATE_90_CLOCKWISE)  
+                rotated_mask = cv2.rotate(rotated_mask, cv2.ROTATE_90_CLOCKWISE) 
 
 
         # if there's no mask/rectangle detected will not auto center image
         # mask is the basis for the centering
         if no_mask == True:
-            centered_image = rotated_image
+            centered_image = im_gray
         else:
             centered_image = center_object(rotated_image , rotated_mask)
 
@@ -121,7 +127,7 @@ def houghT_rotate(folder_path, output_folder, outliers_path, th_less, i):
         
     return image_output , non_centered
 
-def get_rect(im_gray, th_less, i):
+def get_rect(im_gray, th_less):
     #get image threshold
 
     threshold = threshold_otsu(im_gray)
@@ -134,11 +140,11 @@ def get_rect(im_gray, th_less, i):
     background_removed_image[inverted_bina_image]  = im_gray[inverted_bina_image]
     background_removed_image = Image.fromarray(background_removed_image)
 
-    #brighten image on ght first run only. will help with detecting a better rectangle
-    if i == 0:
-        enhancer = ImageEnhance.Brightness(background_removed_image)
-        factor = 1.5 
-        background_removed_image = enhancer.enhance(factor)
+    # #brighten image on ght first run only. will help with detecting a better rectangle
+    # if i == 0:
+    #     enhancer = ImageEnhance.Brightness(background_removed_image)
+    #     factor = 1.5 
+    #     background_removed_image = enhancer.enhance(factor)
 
     #get contours of binary image
     contours, _ = cv2.findContours(np.uint8(background_removed_image), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)

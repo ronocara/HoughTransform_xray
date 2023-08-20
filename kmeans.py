@@ -18,14 +18,14 @@ def kmeans_segment(folder_path, output_folder):
         image_2d = image.reshape((height * width, 1))
 
         n_clusters = 2  
-        threshold = 120
+        threshold = 100
 
         kmeans = KMeans(n_clusters=n_clusters , init=np.array([[0], [255]]))
         kmeans.fit(image_2d)
 
         cluster_centers = kmeans.cluster_centers_
-        cluster_centers[cluster_centers <= threshold] = 0
-        cluster_centers[cluster_centers > threshold] = 100
+        cluster_centers[cluster_centers <= threshold] = 10
+        cluster_centers[cluster_centers > threshold] = 50
         kmeans.cluster_centers_ = cluster_centers
         
         cluster_labels = kmeans.predict(image_2d)
