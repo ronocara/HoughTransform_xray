@@ -65,8 +65,8 @@ def houghT_rotate(folder_path, output_folder, outliers_path, th_less):
 
             elif (angle_degrees <=0.6 and angle_degrees >=0.0):
                 # print("condition 1")
-                # rotated_image = np.uint8(im_gray)
-                # image_masked = cv2.bitwise_and(rotated_image, rotated_image, mask=mask)
+                rotated_image = np.uint8(im_gray)
+                image_masked = cv2.bitwise_and(rotated_image, rotated_image, mask=mask)
                 rotated_image = cv2.rotate(image_masked, cv2.ROTATE_90_CLOCKWISE)
                 rotated_mask = cv2.rotate(mask, cv2.ROTATE_90_CLOCKWISE)
 
@@ -75,12 +75,12 @@ def houghT_rotate(folder_path, output_folder, outliers_path, th_less):
                     # print("condition 2")
                     if (angle_degrees <= 90 and angle_degrees >= 70 ):
                         # print("condition 2.1")
-                        # image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
+                        image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
                         rotated_image = cv2.rotate(np.uint8(image_masked), cv2.ROTATE_90_COUNTERCLOCKWISE)
                         rotated_mask =cv2.rotate(mask, cv2.ROTATE_90_COUNTERCLOCKWISE)
                     elif (angle_degrees >= -90 and angle_degrees <= -70):
                         # print("condition 2.2")
-                        # image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
+                        image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
                         rotated_image = cv2.rotate(np.uint8(image_masked), cv2.ROTATE_90_CLOCKWISE)
                         rotated_mask =cv2.rotate(mask, cv2.ROTATE_90_CLOCKWISE)
                     
@@ -91,13 +91,13 @@ def houghT_rotate(folder_path, output_folder, outliers_path, th_less):
                     #making sure the height is always longer. so image is always vertical 
                     if height < width:
                         # print("condition 3.1")
-                        # image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
+                        image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
                         rotated_image = cv2.warpAffine(image_masked, rotation_matrix, (width, height))
                         rotated_mask = cv2.warpAffine(mask, rotation_matrix, (width, height))
                     else:
                         # print("condition 3.2")
                         # im_gray = np.uint8(img_original)
-                        # image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
+                        image_masked = cv2.bitwise_and(im_gray, im_gray, mask=mask)
                         rotated_image = cv2.warpAffine(image_masked, rotation_matrix, (height, width))
                         rotated_mask = cv2.warpAffine(mask, rotation_matrix, (height, width))
 
